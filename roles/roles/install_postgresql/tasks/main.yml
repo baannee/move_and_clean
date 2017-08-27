@@ -1,0 +1,52 @@
+---
+
+# Official PostgreSQL [repository] for debian-based distributions
+- name: Adding APT repository key
+  apt_key:
+    id: ACCC4CF8
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+
+- name: Add PostgreSQL official APT repository
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ansible_distribution_release}}-pgdg main"
+
+- name: Install PostgreSQL
+  apt:
+    name: "postgresql-9.6"
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items:
+    - postgresql-contrib
+    - postgresql-libs
+    - libpq-dev
+    - python-psycopg2
+    - python3-psycopg2
+    - libssl-dev
+    - libssl-doc
+
+- name: Install psycopg2 python module
+  pip: name=psycopg2
+  
+- name: Ensure the PostgreSQL service is running
+  service: name=postgresql state=started enabled=yes
+
+- name: Make PgSQL DBMS listen on all interfaces
+  shell: sudo sed -i "0,/^#listen_addresses.*/s/^#listen_addresses.*/listen_addresses = '*'\n&/" /etc/postgresql/9.6/main/postgresql.conf
+ 
+- name: Allow admin user remote access with password/MD5 auth
+  shell: sudo bash -c "printf \"\\n# IPv4 remote connections:\\nhost all all 127.0.0.1/8 md5\" >> /etc/postgresql/9.6/main/pg_hba.conf" 
+  notify: restart postgresql
+  
+- name: Reload firewall
+  shell: sudo ufw reload
+
+- name: Copy python scripts
+  template: src=geoip.py.j2 dest=/home/dev_ops/pgsql/geoip.py. mode=0755 owner=dev_ops group=dev_ops  
+  
+- name: Make scripts executable
+  shell: sudo chmod +x /home/dev_ops/pgsql/geoip.py
+  
+- name: Make scripts executable
+  shell: sudo /home/dev_ops/pgsql/geoip.py args  
+  

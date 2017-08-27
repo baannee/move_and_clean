@@ -1,0 +1,28 @@
+---
+# Install RVM
+  - name: Append rvm path to environment
+    lineinfile: dest=/etc/environment state=present backrefs=yes regexp='PATH=(["]*)((?!.*?{{rvm_path}}).*?)(["]*)$' line="PATH=\1\2:{{rvm_path}}\3"
+       
+  - name: Ensure that GPG key for RVM is installed
+    command: "gpg --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3"
+    args:
+      creates: /root/.gnupg/secring.gpg
+
+  - name: Ensure that RVM is installed
+    shell: curl -L get.rvm.io | bash -s stable
+    args:
+      creates: /usr/local/rvm
+
+  - name: Ensure that ruby is installed
+    command: "rvm install {{ ruby_version }}"
+    args:
+      creates: "/usr/local/rvm/gems/ruby-{{ ruby_version }}"
+    environment:
+      PATH: "{{ rvm_path }}:{{ ansible_env.PATH }}"
+
+  - name: Set default version of ruby with rvm
+    command: "rvm alias create default ruby-{{ ruby_version }}"
+    args:
+      creates: /usr/local/rvm/config/alias
+    environment:
+      PATH: "{{ rvm_path }}:{{ ansible_env.PATH }}"

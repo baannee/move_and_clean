@@ -1,0 +1,4 @@
+---
+db_user: "ror_app"
+db_password: "testpass"
+db_name: "geo_test"

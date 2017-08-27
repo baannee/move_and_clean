@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  become: yes
+  remote_user: ansible
+  roles:
+     - install_rvm
+     - install_ruby
+     - install_app

@@ -1,0 +1,21 @@
+- name: Create User
+  shell: sudo -u postgres psql -c "ALTER USER ror_app WITH PASSWORD 'testpass';" > /dev/null 2>&1
+  
+- name: Create DB
+  shell: sudo -u postgres psql -c "ALTER DATABASE geo_test;" > /dev/null 2>&1
+  
+- name: Create backup folder
+  file: dest=/home/dev_ops/pgsql state=directory owner=dev_ops group=dev_ops
+  sudo: yes 
+  
+- name: Copy pgsql scripts
+  template: src=create_pgsql.sh.j2 dest=/home/dev_ops/pgsql/create_pgsql.sh mode=0755 owner=dev_ops group=dev_ops
+  
+- name: Copy pgsql scripts
+  template: src=SQLDBDesign.sql.j2 dest=/home/dev_ops/pgsql/SQLDBDesign.sql mode=0755 owner=dev_ops group=dev_ops
+ 
+- name: Make scripts executable
+  shell: sudo chmod +x /home/dev_ops/pgsql/*
+  
+- name: Make scripts executable
+  shell: sudo /home/dev_ops/pgsql/create_pgsql.sh args
